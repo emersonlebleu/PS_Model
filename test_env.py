@@ -29,10 +29,10 @@ def load_image(file_name, colorkey=None, scale=1):
     
     return image, image.get_rect()
 
-class Box(pg.sprite.Sprite):
-    def __init__(self, stimuli):
+class Stimuli(pg.sprite.Sprite):
+    def __init__(self, stimuli_name):
         pg.sprite.Sprite.__init__(self)
-        self.image, self.rect = load_image(stimuli)
+        self.image, self.rect = load_image(stimuli_name)
         self.size = (300, 300)
         self.rect.topleft = (screen.get_width() / 2 - self.rect.width / 2, screen.get_height() / 2 - self.rect.height / 2)
 
@@ -77,8 +77,8 @@ background.fill((255, 255, 255))
 screen.blit(background, (0, 0))
 pg.display.flip()
 
-box = Box('green_box.png')
-allSprites = pg.sprite.RenderPlain((box))
+stimuli = Stimuli('green_box.png')
+allSprites = pg.sprite.RenderPlain((stimuli))
 clock = pg.time.Clock()
 
 quit = False
@@ -93,9 +93,9 @@ while not quit:
             if event.key == pg.K_ESCAPE:
                 quit = True
             elif event.key == pg.K_UP:
-                box.grow()
+                stimuli.grow()
             elif event.key == pg.K_DOWN:
-                box.shrink()
+                stimuli.shrink()
         elif event.type == pg.VIDEORESIZE:
             screen = pg.display.set_mode(event.size, pg.RESIZABLE)
             background = pg.Surface(screen.get_size())
