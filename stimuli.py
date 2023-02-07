@@ -36,6 +36,11 @@ class Stimuli(pg.sprite.Sprite):
         self.size = (300, 300)
         self.rect.topleft = self.get_center_position()
 
+        if self.size == (0, 0):
+            self.color = None
+        else:
+            self.color = self.image.get_at((0, 0))
+
     def shrink(self):
         if self.size == (0, 0):
             return
@@ -43,11 +48,10 @@ class Stimuli(pg.sprite.Sprite):
         self.image = pg.transform.scale(self.image, self.size)
         self.rect = self.image.get_rect()
         self.rect.topleft = self.get_center_position()
-        # print(self.size)
 
     def grow(self):
         if self.size == (0, 0):
-            self.image, self.rect = load_image(stimuli)
+            self.image, self.rect = load_image(self.stimuli_name)
             self.size = (30, 30)
             self.image = pg.transform.scale(self.image, self.size)
             self.rect = self.image.get_rect()
@@ -59,9 +63,13 @@ class Stimuli(pg.sprite.Sprite):
         self.image = pg.transform.scale(self.image, self.size)
         self.rect = self.image.get_rect()
         self.rect.topleft = self.get_center_position()
-        # print(self.size)
 
     def get_center_position(self):
         self.center_position = (pg.display.get_window_size()[0] / 2 - self.rect.width / 2, pg.display.get_window_size()[1] / 2 - self.rect.height / 2)
         return self.center_position
 
+    def get_size(self):
+        return self.size
+
+    def get_color(self):
+        return self.color[:3]

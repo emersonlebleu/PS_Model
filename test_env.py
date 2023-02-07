@@ -7,7 +7,7 @@ if not pg.font:
 if not pg.mixer:
     print('Warning, sound disabled')
 
-# Start the game
+# Initialize pygame screen background etc
 pg.init()
 screen = pg.display.set_mode((1200, 900), flags=pg.SCALED)
 pg.display.set_caption('Boxelerate')
@@ -28,6 +28,7 @@ clock = pg.time.Clock()
 
 quit = False
 
+# Main game loop
 while not quit:
     clock.tick(60)
 
@@ -39,8 +40,16 @@ while not quit:
                 quit = True
             elif event.key == pg.K_UP:
                 stimuli.grow()
+
+                # Just testing what the agent will see below
+                # print(stimuli.get_color())
+                # print(stimuli.get_size())
             elif event.key == pg.K_DOWN:
                 stimuli.shrink()
+
+                # Just testing what the agent will see below
+                # print(stimuli.get_color())
+                # print(stimuli.get_size())
         elif event.type == pg.VIDEORESIZE:
             screen = pg.display.set_mode(event.size, pg.RESIZABLE)
             background = pg.Surface(screen.get_size())
