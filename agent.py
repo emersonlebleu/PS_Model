@@ -5,25 +5,26 @@ from memory import Memory
 
 # A class called agent that will be used to control the stimuli and store experiences in the memory space
 class Agent:
-    def __init__(self, name: str, memory: Memory, actions: np.ndarray):
+    def __init__(self, name: str, memory: Memory, actions: list, reflection=1):
         self.name = name
         self.memory = memory
         self.actions = actions
+        self.reflection = reflection
 
-    def input_coupler(self, input: np.ndarray):
+    def input_coupler(self, input):
         pass
 
-    def observe(self, observations: np.ndarray):
+    def observe(self, observations):
         # will use the input_coupler to map input from the observations to the clips in memory space
         pass
 
-    def reflect(self, starting_clip: np.ndarray):
+    def reflect(self, starting_clip):
         pass
 
-    def output_coupler(self, actuators: np.ndarray):
+    def output_coupler(self, actuators):
         pass
 
-    def act(self, actions: np.ndarray):
+    def act(self, actions):
         # will use the output_coupler to map the actuators in memory space to actions available to the agent
         pass
 
