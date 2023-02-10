@@ -5,7 +5,11 @@ from memory import Memory
 
 # A class called agent that will be used to control the stimuli and store experiences in the memory space
 class Agent:
-    def __init__(self, name: str, memory: Memory, actions: list, reflection=1):
+    """
+    The agent class will be used to control the stimuli and store experiences in the memory space
+
+    """
+    def __init__(self, name: str, memory: Memory, actions: list, reflection=1, dampening=0):
         self.name = name
         self.memory = memory
         self.actions = actions
