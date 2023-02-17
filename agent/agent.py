@@ -1,5 +1,4 @@
 import os
-import pygame as ps
 import numpy as np
 
 # A class called agent that will be used to control the stimuli and store experiences in the memory space
@@ -49,9 +48,73 @@ class PSAgent:
             For each edge it would be the sum the weight devided by the sum of all the weights of the edges connected to the same node
 
     """
-    def __init__(self):
+    def __init__(self, g_edge=False, g_clip=False, emotion=False, reflection=0, decay_h=0, decay_g=0):
+        self.g_edge = g_edge
+        self.g_clip = g_clip
+        self.emotion = emotion
+        self.reflection = reflection
+        self.decay_h = decay_h
+        self.decay_g = decay_g
+
+        self.memory_space = np.zeros((1,0))
+        self.action_space = np.zeros((1,0))
+
+        self.percept_h_matrix = np.zeros((1,0))
+        self.action_h_matrix = np.zeros((1,0))
+
+    def observe_environment(self, observations):
+        """
+        The agent observes accepts inputs from the environment and processes them
+
+        observations[0] will be the percepts
+        observations[1] will be the actions possible at present
+        observations[2] will be the reward
+        """
         pass
 
-
-            
+    #to be made into a "private" method
+    def add_to_memory(self, percepts: list = [], actions: list = []):
+        self.memory_space = np.append(self.memory_space, percepts)
+        self.action_space = np.append(self.action_space, actions)
         
+        #Add new fields to the percept_h_matrix
+        if self.percept_h_matrix.shape[0] == 1:
+            self.percept_h_matrix = np.full((len(percepts), len(percepts)), 1)
+        else:
+            self.percept_h_matrix = np.append(self.percept_h_matrix, np.full((self.percept_h_matrix.shape[0], len(percepts)), 1), axis=1)
+            self.percept_h_matrix = np.append(self.percept_h_matrix, np.full((len(percepts), self.percept_h_matrix.shape[1]), 1), axis=0)
+        
+        #Add new fields to the action_h_matrix
+        if self.action_h_matrix.shape[0] == 1:
+            self.action_h_matrix = np.full((len(percepts), len(actions)), 1)
+        else:
+            self.action_h_matrix = np.append(self.action_h_matrix, np.full((self.action_h_matrix.shape[0], len(actions)), 1), axis=1)
+            self.action_h_matrix = np.append(self.action_h_matrix, np.full((len(percepts), self.action_h_matrix.shape[1]), 1), axis=0)
+
+
+agent = PSAgent()
+agent.add_to_memory(actions = ["+", "-"], percepts=[1, 2, 3])
+print("Memory Space:")
+print(agent.memory_space)
+print("Percept H Matrix:")
+print(agent.percept_h_matrix)
+print("Action H Matrix:")
+print(agent.action_h_matrix)
+
+print("Adding 4th:")
+agent.add_to_memory(percepts=[4])
+print("Memory Space:")
+print(agent.memory_space)
+print("Percept H Matrix:")
+print(agent.percept_h_matrix)
+print("Action H Matrix:")
+print(agent.action_h_matrix)
+
+print("Adding 3 more:")
+agent.add_to_memory(percepts=[5, 6, 7])
+print("Memory Space:")
+print(agent.memory_space)
+print("Percept H Matrix:")
+print(agent.percept_h_matrix)
+print("Action H Matrix:")
+print(agent.action_h_matrix)
