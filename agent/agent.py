@@ -72,7 +72,6 @@ class PSAgent:
         """
         pass
 
-    #to be made into a "private" method
     def __add_to_memory(self, percepts: list = [], actions: list = []):
         self.memory_space = np.append(self.memory_space, percepts)
         self.action_space = np.append(self.action_space, actions)
