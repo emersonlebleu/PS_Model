@@ -73,7 +73,7 @@ class PSAgent:
         pass
 
     #to be made into a "private" method
-    def add_to_memory(self, percepts: list = [], actions: list = []):
+    def __add_to_memory(self, percepts: list = [], actions: list = []):
         self.memory_space = np.append(self.memory_space, percepts)
         self.action_space = np.append(self.action_space, actions)
         
@@ -93,7 +93,7 @@ class PSAgent:
 
 
 agent = PSAgent()
-agent.add_to_memory(actions = ["+", "-"], percepts=[1, 2, 3])
+agent.__add_to_memory(actions = ["+", "-"], percepts=[1, 2, 3])
 print("Memory Space:")
 print(agent.memory_space)
 print("Percept H Matrix:")
@@ -101,8 +101,8 @@ print(agent.percept_h_matrix)
 print("Action H Matrix:")
 print(agent.action_h_matrix)
 
-print("Adding 4th:")
-agent.add_to_memory(percepts=[4])
+print("Adding One more:")
+agent.__add_to_memory(percepts=[4])
 print("Memory Space:")
 print(agent.memory_space)
 print("Percept H Matrix:")
@@ -111,7 +111,7 @@ print("Action H Matrix:")
 print(agent.action_h_matrix)
 
 print("Adding 3 more:")
-agent.add_to_memory(percepts=[5, 6, 7])
+agent.__add_to_memory(percepts=[5, 6, 7])
 print("Memory Space:")
 print(agent.memory_space)
 print("Percept H Matrix:")
