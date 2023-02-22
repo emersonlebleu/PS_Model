@@ -78,20 +78,32 @@ class PSAgent:
         self.action_space = np.append(self.action_space, actions)
         
         #Add new fields to the percept_h_matrix
-        if self.percept_h_matrix.shape[1] == 1:
-            self.percept_h_matrix = np.full((3, len(percepts), len(percepts)), 0)
-            self.percept_h_matrix[0] = np.full((len(percepts), len(percepts)), 1)
+        if self.percept_percept_matrix.shape[1] == 1:
+            self.percept_percept_matrix = np.full((3, len(percepts), len(percepts)), 0)
+            self.percept_percept_matrix[0] = np.full((len(percepts), len(percepts)), 1)
         else:
-            self.percept_h_matrix = np.append(self.percept_h_matrix, np.full((3, self.percept_h_matrix.shape[1], len(percepts)), 0), axis=2)
-            self.percept_h_matrix = np.append(self.percept_h_matrix, np.full((3, len(percepts), self.percept_h_matrix.shape[2]), 0), axis=1)
+            percept_row_index = self.percept_percept_matrix.shape[1]
+            percept_column_index = self.percept_percept_matrix.shape[2]
+
+            self.percept_percept_matrix = np.append(self.percept_percept_matrix, np.full((3, self.percept_percept_matrix.shape[1], len(percepts)), 0), axis=2)
+            self.percept_percept_matrix = np.append(self.percept_percept_matrix, np.full((3, len(percepts), self.percept_percept_matrix.shape[2]), 0), axis=1)
+
+            self.percept_percept_matrix[0, percept_row_index:, :] = 1
+            self.percept_percept_matrix[0, :percept_row_index, percept_column_index:] = 1
         
         #Add new fields to the action_h_matrix
-        if self.action_h_matrix.shape[1] == 1:
-            self.action_h_matrix = np.full((3, len(percepts), len(actions)), 0)
-            self.action_h_matrix[0] = np.full((len(percepts), len(actions)), 1)
+        if self.action_percept_matrix.shape[1] == 1:
+            self.action_percept_matrix = np.full((3, len(percepts), len(actions)), 0)
+            self.action_percept_matrix[0] = np.full((len(percepts), len(actions)), 1)
         else:
-            self.action_h_matrix = np.append(self.action_h_matrix, np.full((3, self.action_h_matrix.shape[1], len(actions)), 0), axis=2)
-            self.action_h_matrix = np.append(self.action_h_matrix, np.full((3, len(percepts), self.action_h_matrix.shape[2]), 0), axis=1)
+            action_row_index = self.action_percept_matrix.shape[1]
+            action_column_index = self.action_percept_matrix.shape[2]
+
+            self.action_percept_matrix = np.append(self.action_percept_matrix, np.full((3, self.action_percept_matrix.shape[1], len(actions)), 0), axis=2)
+            self.action_percept_matrix = np.append(self.action_percept_matrix, np.full((3, len(percepts), self.action_percept_matrix.shape[2]), 0), axis=1)
+
+            self.action_percept_matrix[0, action_row_index:, :] = 1
+            self.action_percept_matrix[0, :action_row_index, action_column_index:] = 1
 
 
 agent = PSAgent()
@@ -99,24 +111,24 @@ agent.add_to_memory(actions = ["+", "-"], percepts=[1, 2, 3])
 print("Memory Space:")
 print(agent.memory_space)
 print("Percept H Matrix:")
-print(agent.percept_h_matrix)
+print(agent.percept_percept_matrix)
 print("Action H Matrix:")
-print(agent.action_h_matrix)
+print(agent.action_percept_matrix)
 
 print("Adding One more:")
 agent.add_to_memory(percepts=[4])
 print("Memory Space:")
 print(agent.memory_space)
 print("Percept H Matrix:")
-print(agent.percept_h_matrix)
+print(agent.percept_percept_matrix)
 print("Action H Matrix:")
-print(agent.action_h_matrix)
+print(agent.action_percept_matrix)
 
 print("Adding 3 more:")
 agent.add_to_memory(percepts=[5, 6, 7])
 print("Memory Space:")
 print(agent.memory_space)
 print("Percept H Matrix:")
-print(agent.percept_h_matrix)
+print(agent.percept_percept_matrix)
 print("Action H Matrix:")
-print(agent.action_h_matrix)
+print(agent.action_percept_matrix)
