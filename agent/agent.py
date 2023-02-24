@@ -68,10 +68,11 @@ class PSAgent:
         The agent observes accepts inputs from the environment and processes them
 
         observations[0] will be the percepts
-        observations[1] will be the actions possible at present
         observations[2] will be the reward
         """
-        pass
+        for percept in observations[0]:
+            if percept not in self.memory_space:
+                self.add_to_memory([percept])
 
     def add_to_memory(self, percepts: list = [], actions: list = []):
         self.memory_space = np.append(self.memory_space, percepts)
@@ -105,6 +106,21 @@ class PSAgent:
             self.action_percept_matrix[0, action_row_index:, :] = 1
             self.action_percept_matrix[0, :action_row_index, action_column_index:] = 1
 
+    def update_weights(self, percept_indices: list, action_indices: list, reward: int, glowing_percepts: list = [], glowing_actions: list = []):
+        """
+        Update the weights of the agent's memory
+            Takes a list of the visited percepts and actions during the last cycle and updates the weights based on the reward given
+            uses the decay factor
+            also uses the emotion factor
+            uses clip/edge glow if applicable
+        """
+        if self.g_edge or self.g_clip:
+            #edge glow
+                #update the glowing edges to some extent based on the reward? is that what they did? or is that just what i want to do because 
+                #that makes sense to me?
+            #clip glow
+                #update the glowing clips weights to some extent based on the reward
+            pass
 
 agent = PSAgent()
 agent.add_to_memory(actions = ["+", "-"], percepts=[1, 2, 3])
