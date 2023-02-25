@@ -84,34 +84,35 @@ class PSAgent:
                 self.add_clip_to_memory(clip = tuple(observations[0]))
 
     def add_clip_to_memory(self, clip = ()):
+        #Add the clip to the clip space
         self.clip_space[clip] = self.clip_index
         self.clip_index += 1
-
-        #Add new clips to the percept_h_matrix
-        if self.clip_clip_matrix.shape[1] == 1:
+        
+        if self.clip_index <= 1:
             self.clip_clip_matrix = np.full((3, 1, 1), 0)
             self.clip_clip_matrix[0] = np.full((1, 1), 1)
+
+            self.clip_action_matrix = np.full((3, 1, self.clip_action_matrix.shape[2]), 0)
+            self.clip_action_matrix[0] = np.full((1, self.clip_action_matrix.shape[2]), 1)
         else:
-            percept_row_index = self.clip_clip_matrix.shape[1]
-            percept_column_index = self.clip_clip_matrix.shape[2]
+            #get the current index of the clip_clip_matrix for reference
+            clip_row_index = self.clip_clip_matrix.shape[1]
+            clip_column_index = self.clip_clip_matrix.shape[2]
 
             self.clip_clip_matrix = np.append(self.clip_clip_matrix, np.full((3, self.clip_clip_matrix.shape[1], 1), 0), axis=2)
             self.clip_clip_matrix = np.append(self.clip_clip_matrix, np.full((3, 1, self.clip_clip_matrix.shape[2]), 0), axis=1)
 
-            self.clip_clip_matrix[0, percept_row_index:, :] = 1
-            self.clip_clip_matrix[0, :percept_row_index, percept_column_index:] = 1
+            self.clip_clip_matrix[0, clip_row_index:, :] = 1
+            self.clip_clip_matrix[0, :clip_row_index, clip_column_index:] = 1
 
-            #Add new fields to the action_h_matrix
+            #Add new fields to the clip_action_matrix
             action_row_index = self.clip_action_matrix.shape[1]
             action_column_index = self.clip_action_matrix.shape[2]
 
-            self.clip_action_matrix = np.append(self.clip_action_matrix, np.full((3, self.clip_action_matrix.shape[1], 1), 0), axis=2)
             self.clip_action_matrix = np.append(self.clip_action_matrix, np.full((3, 1, self.clip_action_matrix.shape[2]), 0), axis=1)
 
             self.clip_action_matrix[0, action_row_index:, :] = 1
-            self.clip_action_matrix[0, :action_row_index, action_column_index:] = 1
 
-        
     def add_action_to_memory(self, action):
         self.action_space[action] = self.action_index
         self.action_index += 1
@@ -143,7 +144,7 @@ class PSAgent:
             pass
 
 agent = PSAgent(actions=["+", "-"])
-# agent.add_to_memory(clip=[1, 2, 3])
+agent.add_clip_to_memory(clip=(1, 2, 3))
 print("Memory Space:")
 print(agent.clip_space)
 print("Percept H Matrix:")
@@ -151,20 +152,20 @@ print(agent.clip_clip_matrix)
 print("Action H Matrix:")
 print(agent.clip_action_matrix)
 
-# print("Adding One more:")
-# agent.add_to_memory(clip=[4])
-# print("Memory Space:")
-# print(agent.clip_space)
-# print("Percept H Matrix:")
-# print(agent.clip_clip_matrix)
-# print("Action H Matrix:")
-# print(agent.clip_action_matrix)
+print("Adding One more:")
+agent.add_clip_to_memory(clip=(4, 5, 6))
+print("Memory Space:")
+print(agent.clip_space)
+print("Percept H Matrix:")
+print(agent.clip_clip_matrix)
+print("Action H Matrix:")
+print(agent.clip_action_matrix)
 
-# print("Adding 3 more:")
-# agent.add_to_memory(clip=[5, 6, 7])
-# print("Memory Space:")
-# print(agent.clip_space)
-# print("Percept H Matrix:")
-# print(agent.clip_clip_matrix)
-# print("Action H Matrix:")
-# print(agent.clip_action_matrix)
+print("Adding 3 more:")
+agent.add_clip_to_memory(clip=(7, 8, 9))
+print("Memory Space:")
+print(agent.clip_space)
+print("Percept H Matrix:")
+print(agent.clip_clip_matrix)
+print("Action H Matrix:")
+print(agent.clip_action_matrix)
