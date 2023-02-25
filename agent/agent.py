@@ -56,11 +56,15 @@ class PSAgent:
         self.decay_h = decay_h
         self.decay_g = decay_g
 
-        self.memory_space = np.zeros((1,))
-        self.action_space = np.zeros((1,))
+        #The memory space of action and percepts is a dictionary of clips because we will be looking up clips frequently (O(1))
+        self.clip_space = {}
+        self.clip_index = 0
 
-        self.percept_percept_matrix = np.zeros((3, 1, 1))
-        self.action_percept_matrix = np.zeros((3, 1, 1))
+        self.action_space = {}
+        self.action_index = 0
+
+        self.clip_clip_matrix = np.zeros((3, 1, 1))
+        self.clip_action_matrix = np.zeros((3, 1, 1))
 
 
     def observe_environment(self, observations):
@@ -70,41 +74,43 @@ class PSAgent:
         observations[0] will be the percepts
         observations[2] will be the reward
         """
-        for percept in observations[0]:
-            if percept not in self.memory_space:
-                self.add_to_memory([percept])
+        if observations[0]:
+            if tuple(observations[0]) not in self.clip_space:
+                self.add_to_memory(tuple(observations[0]))
 
-    def add_to_memory(self, percepts: list = [], actions: list = []):
-        self.memory_space = np.append(self.memory_space, percepts)
-        self.action_space = np.append(self.action_space, actions)
+    def add_to_memory(self, clip: list = [], actions: list = []):
+        self.clip_space[clip] = self.clip_index
+        self.clip_index += 1
+        self.action_space[actions] = self.action_index
+        self.action_index += 1
         
         #Add new fields to the percept_h_matrix
-        if self.percept_percept_matrix.shape[1] == 1:
-            self.percept_percept_matrix = np.full((3, len(percepts), len(percepts)), 0)
-            self.percept_percept_matrix[0] = np.full((len(percepts), len(percepts)), 1)
+        if self.clip_clip_matrix.shape[1] == 1:
+            self.clip_clip_matrix = np.full((3, len(clip), len(clip)), 0)
+            self.clip_clip_matrix[0] = np.full((len(clip), len(clip)), 1)
         else:
-            percept_row_index = self.percept_percept_matrix.shape[1]
-            percept_column_index = self.percept_percept_matrix.shape[2]
+            percept_row_index = self.clip_clip_matrix.shape[1]
+            percept_column_index = self.clip_clip_matrix.shape[2]
 
-            self.percept_percept_matrix = np.append(self.percept_percept_matrix, np.full((3, self.percept_percept_matrix.shape[1], len(percepts)), 0), axis=2)
-            self.percept_percept_matrix = np.append(self.percept_percept_matrix, np.full((3, len(percepts), self.percept_percept_matrix.shape[2]), 0), axis=1)
+            self.clip_clip_matrix = np.append(self.clip_clip_matrix, np.full((3, self.clip_clip_matrix.shape[1], len(clip)), 0), axis=2)
+            self.clip_clip_matrix = np.append(self.clip_clip_matrix, np.full((3, len(clip), self.clip_clip_matrix.shape[2]), 0), axis=1)
 
-            self.percept_percept_matrix[0, percept_row_index:, :] = 1
-            self.percept_percept_matrix[0, :percept_row_index, percept_column_index:] = 1
+            self.clip_clip_matrix[0, percept_row_index:, :] = 1
+            self.clip_clip_matrix[0, :percept_row_index, percept_column_index:] = 1
         
         #Add new fields to the action_h_matrix
-        if self.action_percept_matrix.shape[1] == 1:
-            self.action_percept_matrix = np.full((3, len(percepts), len(actions)), 0)
-            self.action_percept_matrix[0] = np.full((len(percepts), len(actions)), 1)
+        if self.clip_action_matrix.shape[1] == 1:
+            self.clip_action_matrix = np.full((3, len(clip), len(actions)), 0)
+            self.clip_action_matrix[0] = np.full((len(clip), len(actions)), 1)
         else:
-            action_row_index = self.action_percept_matrix.shape[1]
-            action_column_index = self.action_percept_matrix.shape[2]
+            action_row_index = self.clip_action_matrix.shape[1]
+            action_column_index = self.clip_action_matrix.shape[2]
 
-            self.action_percept_matrix = np.append(self.action_percept_matrix, np.full((3, self.action_percept_matrix.shape[1], len(actions)), 0), axis=2)
-            self.action_percept_matrix = np.append(self.action_percept_matrix, np.full((3, len(percepts), self.action_percept_matrix.shape[2]), 0), axis=1)
+            self.clip_action_matrix = np.append(self.clip_action_matrix, np.full((3, self.clip_action_matrix.shape[1], len(actions)), 0), axis=2)
+            self.clip_action_matrix = np.append(self.clip_action_matrix, np.full((3, len(clip), self.clip_action_matrix.shape[2]), 0), axis=1)
 
-            self.action_percept_matrix[0, action_row_index:, :] = 1
-            self.action_percept_matrix[0, :action_row_index, action_column_index:] = 1
+            self.clip_action_matrix[0, action_row_index:, :] = 1
+            self.clip_action_matrix[0, :action_row_index, action_column_index:] = 1
 
     def update_weights(self, percept_indices: list, action_indices: list, reward: int, glowing_percepts: list = [], glowing_actions: list = []):
         """
@@ -123,28 +129,28 @@ class PSAgent:
             pass
 
 agent = PSAgent()
-agent.add_to_memory(actions = ["+", "-"], percepts=[1, 2, 3])
+agent.add_to_memory(actions = ["+", "-"], clip=[1, 2, 3])
 print("Memory Space:")
-print(agent.memory_space)
+print(agent.clip_space)
 print("Percept H Matrix:")
-print(agent.percept_percept_matrix)
+print(agent.clip_clip_matrix)
 print("Action H Matrix:")
-print(agent.action_percept_matrix)
+print(agent.clip_action_matrix)
 
 print("Adding One more:")
-agent.add_to_memory(percepts=[4])
+agent.add_to_memory(clip=[4])
 print("Memory Space:")
-print(agent.memory_space)
+print(agent.clip_space)
 print("Percept H Matrix:")
-print(agent.percept_percept_matrix)
+print(agent.clip_clip_matrix)
 print("Action H Matrix:")
-print(agent.action_percept_matrix)
+print(agent.clip_action_matrix)
 
 print("Adding 3 more:")
-agent.add_to_memory(percepts=[5, 6, 7])
+agent.add_to_memory(clip=[5, 6, 7])
 print("Memory Space:")
-print(agent.memory_space)
+print(agent.clip_space)
 print("Percept H Matrix:")
-print(agent.percept_percept_matrix)
+print(agent.clip_clip_matrix)
 print("Action H Matrix:")
-print(agent.action_percept_matrix)
+print(agent.clip_action_matrix)
