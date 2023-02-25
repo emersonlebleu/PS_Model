@@ -13,9 +13,7 @@ class PSAgent:
 
     Memory
         Clips 
-        #Clips are the transitions themselves they do not appear to be literally embodied in the memory space
-            Percepts (P)
-            Actions (A)
+        #Clips are tuples of percepts feed together
 
     ##---Matrix Values---##
         Edges (h_c)
@@ -48,7 +46,7 @@ class PSAgent:
             For each edge it would be the sum the weight devided by the sum of all the weights of the edges connected to the same node
 
     """
-    def __init__(self, g_edge=False, g_clip=False, emotion=False, reflection=0, decay_h=0, decay_g=0):
+    def __init__(self, g_edge=False, g_clip=False, emotion=False, reflection=0, decay_h=0, decay_g=0, actions = []):
         self.g_edge = g_edge
         self.g_clip = g_clip
         self.emotion = emotion
@@ -59,13 +57,24 @@ class PSAgent:
         #The memory space of action and percepts is a dictionary of clips because we will be looking up clips frequently (O(1))
         self.clip_space = {}
         self.clip_index = 0
+        self.clip_clip_matrix = np.zeros((3, 1, 1))
 
         self.action_space = {}
-        self.action_index = 0
-
-        self.clip_clip_matrix = np.zeros((3, 1, 1))
+        self.action_index = 0        
         self.clip_action_matrix = np.zeros((3, 1, 1))
 
+        self.clip_action_matrix = self.__init_action_space(actions, self.clip_action_matrix)
+
+    def __init_action_space(self, actions, action_matrix_init):
+        for action in actions: 
+            self.action_space[action] = self.action_index
+            self.action_index += 1
+        
+        self.clip_action_matrix = np.full((3, 1, len(actions)), 0)
+        self.clip_action_matrix[0] = np.full((1, len(actions)), 1)
+
+        return initial_action_matrix
+        
 
     def observe_environment(self, observations):
         """
@@ -76,41 +85,40 @@ class PSAgent:
         """
         if observations[0]:
             if tuple(observations[0]) not in self.clip_space:
-                self.add_to_memory(tuple(observations[0]))
+                self.add_clip_to_memory(clip = tuple(observations[0]))
 
-    def add_to_memory(self, clip: list = [], actions: list = []):
+    def add_clip_to_memory(self, clip = ()):
         self.clip_space[clip] = self.clip_index
         self.clip_index += 1
-        self.action_space[actions] = self.action_index
-        self.action_index += 1
-        
+
         #Add new fields to the percept_h_matrix
         if self.clip_clip_matrix.shape[1] == 1:
-            self.clip_clip_matrix = np.full((3, len(clip), len(clip)), 0)
-            self.clip_clip_matrix[0] = np.full((len(clip), len(clip)), 1)
+            self.clip_clip_matrix = np.full((3, 1, 1), 0)
+            self.clip_clip_matrix[0] = np.full((1, 1), 1)
         else:
             percept_row_index = self.clip_clip_matrix.shape[1]
             percept_column_index = self.clip_clip_matrix.shape[2]
 
-            self.clip_clip_matrix = np.append(self.clip_clip_matrix, np.full((3, self.clip_clip_matrix.shape[1], len(clip)), 0), axis=2)
-            self.clip_clip_matrix = np.append(self.clip_clip_matrix, np.full((3, len(clip), self.clip_clip_matrix.shape[2]), 0), axis=1)
+            self.clip_clip_matrix = np.append(self.clip_clip_matrix, np.full((3, self.clip_clip_matrix.shape[1], 1), 0), axis=2)
+            self.clip_clip_matrix = np.append(self.clip_clip_matrix, np.full((3, 1, self.clip_clip_matrix.shape[2]), 0), axis=1)
 
             self.clip_clip_matrix[0, percept_row_index:, :] = 1
             self.clip_clip_matrix[0, :percept_row_index, percept_column_index:] = 1
+
         
+    def add_action_to_memory(self, action):
+        self.action_space[action] = self.action_index
+        self.action_index += 1
+
         #Add new fields to the action_h_matrix
-        if self.clip_action_matrix.shape[1] == 1:
-            self.clip_action_matrix = np.full((3, len(clip), len(actions)), 0)
-            self.clip_action_matrix[0] = np.full((len(clip), len(actions)), 1)
-        else:
-            action_row_index = self.clip_action_matrix.shape[1]
-            action_column_index = self.clip_action_matrix.shape[2]
+        action_row_index = self.clip_action_matrix.shape[1]
+        action_column_index = self.clip_action_matrix.shape[2]
 
-            self.clip_action_matrix = np.append(self.clip_action_matrix, np.full((3, self.clip_action_matrix.shape[1], len(actions)), 0), axis=2)
-            self.clip_action_matrix = np.append(self.clip_action_matrix, np.full((3, len(clip), self.clip_action_matrix.shape[2]), 0), axis=1)
+        self.clip_action_matrix = np.append(self.clip_action_matrix, np.full((3, self.clip_action_matrix.shape[1], 1), 0), axis=2)
+        self.clip_action_matrix = np.append(self.clip_action_matrix, np.full((3, 1, self.clip_action_matrix.shape[2]), 0), axis=1)
 
-            self.clip_action_matrix[0, action_row_index:, :] = 1
-            self.clip_action_matrix[0, :action_row_index, action_column_index:] = 1
+        self.clip_action_matrix[0, action_row_index:, :] = 1
+        self.clip_action_matrix[0, :action_row_index, action_column_index:] = 1
 
     def update_weights(self, percept_indices: list, action_indices: list, reward: int, glowing_percepts: list = [], glowing_actions: list = []):
         """
