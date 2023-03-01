@@ -72,16 +72,31 @@ class PSAgent:
         self.clip_action_matrix = np.full((3, 1, len(actions)), 0)
         self.clip_action_matrix[0] = np.full((1, len(actions)), 1)
 
-    def observe_environment(self, observations):
+    def observe_environment(self, observations=(), reward=0):
         """
         The agent observes accepts inputs from the environment and processes them
 
-        observations[0] will be the percepts
-        observations[2] will be the reward
+        1. Check if the clip is in the clip space
+            1.1 If it is not in the clip space, add it to the clip space
+        2. Get the index of the clip in the clip space
+        3. Reward the previous clip walk
+        4. Take the next action
+
         """
-        if observations[0]:
-            if tuple(observations[0]) not in self.clip_space:
-                self.add_clip_to_memory(clip = tuple(observations[0]))
+        if len(observations) == 0:
+            print("No observations were given to the agent")
+            return
+        
+        if tuple(observations) not in self.clip_space:
+            self.add_clip_to_memory(clip = tuple(observations))
+            #in the future we may want to add a glow to the newly added clip before we move on to rewarding previous perception jumps
+        else:
+            #get the index of the clip in the clip space
+            clip_index = self.clip_space[tuple(observations)]
+
+        #Reward the previous clip walk
+
+
 
     def add_clip_to_memory(self, clip = ()):
         #Add the clip to the clip space
