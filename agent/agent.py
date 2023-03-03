@@ -46,7 +46,7 @@ class PSAgent:
             For each edge it would be the sum the weight devided by the sum of all the weights of the edges connected to the same node
 
     """
-    def __init__(self, g_edge=False, g_clip=False, emotion=False, reflection=0, decay_h=0, decay_g=0, actions = []):
+    def __init__(self, g_edge=False, g_clip=False, emotion=False, softmax=False, reflection=0, decay_h=0, decay_g=0, actions = []):
         self.g_edge = g_edge
         self.g_clip = g_clip
         self.emotion = emotion
@@ -63,6 +63,8 @@ class PSAgent:
         self.action_index = 0        
         self.clip_action_matrix = np.zeros((3, 1, 1))
         self.__init_action_space(actions)
+
+        self.last_path_taken = [] #A list of the indexes of the clips taken in the last walk
 
     def __init_action_space(self, actions):
         for action in actions: 
@@ -95,8 +97,13 @@ class PSAgent:
             clip_index = self.clip_space[tuple(observations)]
 
         #Reward the previous clip walk
+        #self.update_weights(percepts, actions, reward)
 
-
+    def take_action(self, observations):
+        """
+        The agent takes an action based on the current state of the environment
+        """
+        return 0
 
     def add_clip_to_memory(self, clip = ()):
         #Add the clip to the clip space
@@ -149,6 +156,12 @@ class PSAgent:
             uses the decay factor
             also uses the emotion factor
             uses clip/edge glow if applicable
+
+            each weight is updated by the following formula traditionally if rewards are allways positive:
+                h_t_plus_1 = h - (decay_h * (h - 1) + reward) ##if the clip was traversed
+
+            Can use softmax as well to account for negative rewards as needed:
+
         """
         if self.g_edge or self.g_clip:
             #edge glow
