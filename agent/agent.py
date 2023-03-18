@@ -1,4 +1,5 @@
 import os
+from random import choices
 import numpy as np
 
 # A class called agent that will be used to control the stimuli and store experiences in the memory space
@@ -46,7 +47,7 @@ class PSAgent:
             For each edge it would be the sum the weight devided by the sum of all the weights of the edges connected to the same node
 
     """
-    def __init__(self, g_edge=False, g_clip=False, emotion=False, softmax=False, reflection=0, deliberation=1, decay_h=0, decay_g=0, actions = []):
+    def __init__(self, g_edge=False, g_clip=False, emotion=False, softmax=False, reflection=0, deliberation=0, decay_h=0, decay_g=0, actions = []):
         self.g_edge = g_edge
         self.g_clip = g_clip
         self.emotion = emotion
@@ -95,18 +96,33 @@ class PSAgent:
             self.add_clip_to_memory(clip = tuple(observations))
             #in the future we may want to add a glow to the newly added clip before we move on to rewarding previous perception jumps
         else:
-            #get the index of the clip in the clip space
-            clip_index = self.clip_space[tuple(observations)]
+            #get the index of the clip in the clip space name percept use to pick the next action later
+            percept = self.clip_space[tuple(observations)]
 
         #Reward the previous clip walk
         #self.update_weights(percepts, actions, reward)
-        #take action
+        action_choice = self.take_action(percept)
 
-    def take_action(self, observations):
+    def take_action(self, percept):
         """
         The agent takes an action based on the current state of the environment
+        
+        percept is the index of the percept in the percept space
+        if deliberation is < 0 then a clip walk will be taken
+        if deliberation is >= 0 then an action from the action space will be taken based on the percept
+
+
         """
-        return 0
+        action = 0
+        
+        if self.deliberation == 0:
+            #action = 
+            pass
+        else:
+            #take a clip walk
+            pass
+
+        return action
 
     def add_clip_to_memory(self, clip = ()):
         #Add the clip to the clip space
@@ -173,13 +189,6 @@ class PSAgent:
             #clip glow
                 #update the glowing clips weights to some extent based on the reward
             pass
-
-    def take_action(self, observations):
-        """
-        The agent takes an action based on the current state of the environment
-        takes and action and returns the new observations (reward, done, info, new environment state)
-        """
-        return 0
 
 agent = PSAgent(actions=["+", "-"])
 agent.add_clip_to_memory(clip=(1, 2, 3))
