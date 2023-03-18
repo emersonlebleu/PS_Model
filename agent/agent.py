@@ -46,13 +46,14 @@ class PSAgent:
             For each edge it would be the sum the weight devided by the sum of all the weights of the edges connected to the same node
 
     """
-    def __init__(self, g_edge=False, g_clip=False, emotion=False, softmax=False, reflection=0, decay_h=0, decay_g=0, actions = []):
+    def __init__(self, g_edge=False, g_clip=False, emotion=False, softmax=False, reflection=0, deliberation=1, decay_h=0, decay_g=0, actions = []):
         self.g_edge = g_edge
         self.g_clip = g_clip
         self.emotion = emotion
         self.reflection = reflection
         self.decay_h = decay_h
         self.decay_g = decay_g
+        self.deliberation = deliberation
 
         #The memory space of action and percepts is a dictionary of clips because we will be looking up clips frequently (O(1))
         self.clip_space = {}
@@ -74,7 +75,7 @@ class PSAgent:
         self.clip_action_matrix = np.full((3, 1, len(actions)), 0)
         self.clip_action_matrix[0] = np.full((1, len(actions)), 1)
 
-    def observe_environment(self, observations=(), reward=0):
+    def observe_environment(self, observations=(), reward=0, terminated=False, truncated=False, info={}):
         """
         The agent observes accepts inputs from the environment and processes them
 
@@ -84,6 +85,7 @@ class PSAgent:
         3. Reward the previous clip walk
         4. Take the next action
 
+        provides terminated truncated and info in order to use with the OpenAI Gym API
         """
         if len(observations) == 0:
             print("No observations were given to the agent")
@@ -98,6 +100,7 @@ class PSAgent:
 
         #Reward the previous clip walk
         #self.update_weights(percepts, actions, reward)
+        #take action
 
     def take_action(self, observations):
         """
@@ -170,6 +173,13 @@ class PSAgent:
             #clip glow
                 #update the glowing clips weights to some extent based on the reward
             pass
+
+    def take_action(self, observations):
+        """
+        The agent takes an action based on the current state of the environment
+        takes and action and returns the new observations (reward, done, info, new environment state)
+        """
+        return 0
 
 agent = PSAgent(actions=["+", "-"])
 agent.add_clip_to_memory(clip=(1, 2, 3))
