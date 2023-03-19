@@ -139,13 +139,25 @@ class PSAgent:
         
         #If there is reflection
         while reminaing_reflections >= 0:
-            #choose a path
+
             #take a clip walk
-            while remaining_jumps > 0:
+            while remaining_jumps >= 0:
                 #choices is going to choose from some weighted probablities which is defined as prob = weight / sum of all weights
                 clip_index = random.choices(list(self.clip_space.values()), weights=self.clip_clip_matrix[0][clip_index], k=1)[0]
                 remaining_jumps -= 1
-                
+                last_path_taken.append(clip_index)
+            action_index = random.choices(list(self.action_space.values()), weights=self.clip_action_matrix[0][clip_index], k=1)[0]
+            last_path_taken.append(action_index)
+
+            #if the action has a positive emotion then we will take it else keep going (emotion is at index 1)
+            if self.clip_action_matrix[1][clip_index][action_index] > 0:
+                break
+            elif remaining_reflections == 0:
+                break
+            else:
+                remaining_reflections -= 1
+                remaining_jumps = self.deliberation
+                last_path_taken = []
 
         return action_index, last_path_taken
 
