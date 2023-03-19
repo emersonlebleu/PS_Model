@@ -97,13 +97,13 @@ class PSAgent:
             #in the future we may want to add a glow to the newly added clip before we move on to rewarding previous perception jumps
         else:
             #get the index of the clip in the clip space name percept use to pick the next action later
-            percept = self.clip_space[tuple(observations)]
+            percept_index = self.clip_space[tuple(observations)]
 
         #Reward the previous clip walk
         #self.update_weights(percepts, actions, reward)
-        action_choice = self.take_action(percept)
+        action_choice = self.take_action(percept_index)
 
-    def take_action(self, percept):
+    def take_action(self, percept_index):
         """
         The agent takes an action based on the current state of the environment
         
@@ -111,18 +111,43 @@ class PSAgent:
         if deliberation is < 0 then a clip walk will be taken
         if deliberation is >= 0 then an action from the action space will be taken based on the percept
 
+        there is also reflection-------!!!!!!!!!
 
         """
-        action = 0
+        action_index = 0
+        remaining_jumps = self.deliberation
+        remaining_reflections = self.reflection
+        last_path_taken = []
+        #to use if deliberation is < 0
+        clip_index = percept_index
         
-        if self.deliberation == 0:
-            #action = 
-            pass
-        else:
+        #Couple out immediately if there is no more deliberation and no more reflection
+        if remaining_jumps == 0 and remaining_reflections == 0:
+            #choices is going to choose from some weighted probablities which is defined as prob = weight / sum of all weights
+            action_index = random.choices(list(self.action_space.values()), weights=self.clip_action_matrix[0][percept_index], k=1)[0]
+            last_path_taken.append(percept_index)
+            last_path_taken.append(action_index)
+        elif remaining_jumps > 0 and remaining_reflections == 0:
+            #Take only one clip walk
+            while remaining_jumps >= 0:
+                clip_index = random.choices(list(self.clip_space.values()), weights=self.clip_clip_matrix[0][clip_index], k=1)[0]
+                remaining_jumps -= 1
+                last_path_taken.append(clip_index)
+            #once we are done with the clip walk we will take an action
+            action_index = random.choices(list(self.action_space.values()), weights=self.clip_action_matrix[0][clip_index], k=1)[0]
+            last_path_taken.append(action_index)
+        
+        #If there is reflection
+        while reminaing_reflections >= 0:
+            #choose a path
             #take a clip walk
-            pass
+            while remaining_jumps > 0:
+                #choices is going to choose from some weighted probablities which is defined as prob = weight / sum of all weights
+                clip_index = random.choices(list(self.clip_space.values()), weights=self.clip_clip_matrix[0][clip_index], k=1)[0]
+                remaining_jumps -= 1
+                
 
-        return action
+        return action_index, last_path_taken
 
     def add_clip_to_memory(self, clip = ()):
         #Add the clip to the clip space
