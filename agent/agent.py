@@ -101,7 +101,12 @@ class PSAgent:
 
         #Reward the previous clip walk
         #self.update_weights(percepts, actions, reward)
-        action_choice = self.take_action(percept_index)
+
+        #Take the next action which returns the index of the action taken & the path taken
+        action_index, self.last_path_taken = self.take_action(percept_index)
+        action = list(self.action_space.keys())[list(self.action_space.values()).index(action_index)]
+        
+        return action
 
     def take_action(self, percept_index):
         """
@@ -205,7 +210,8 @@ class PSAgent:
         self.clip_action_matrix[0, action_row_index:, :] = 1
         self.clip_action_matrix[0, :action_row_index, action_column_index:] = 1
 
-    def update_weights(self, percept_indices: list, action_indices: list, reward: int, glowing_percepts: list = [], glowing_actions: list = []):
+    #
+    def update_weights(self, percept_indices: list, action_index: int, reward: int, glowing_percepts: list = [], glowing_actions: list = []):
         """
         Update the weights of the agent's memory
             Takes a list of the visited percepts and actions during the last cycle and updates the weights based on the reward given
