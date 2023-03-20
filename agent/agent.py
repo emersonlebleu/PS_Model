@@ -5,18 +5,13 @@ import numpy as np
 # A class called agent that will be used to control the stimuli and store experiences in the memory space
 class PSAgent:
     """
-    Informed by: 
+    Based in part on ideas from:
         Briegel & De las Cuevas (2012)
         Mautner et al. (2015)
-        Bjerland (2015) --Thesis but good overview of the model
         Melnikov et al. (2017)
         Mofrad et al. (2020)
 
-    Memory
-        Clips 
-        #Clips are tuples of percepts feed together
-
-    ##---Matrix Values---##
+    NOTE: Matrix Values
         Edges (h_c)
             The weight of the edge between two percepts
         Edges (h_a)
@@ -36,16 +31,15 @@ class PSAgent:
         Maybe we could figure out how to make it impacted by whether the "similarity" is relevant to feedback or not? R+ or not
         &&---
     
-    ##---Scalar Values---##
+    NOTE: Scalar Values
         Reflection (r)
-            The number of cycles the agent has to find the answers
+            The number of cycles the agent has to find the answer
+        Deliberation (d)
+            The number of hops between clips the agent can take before it has to choose an action
         Dampening/Decay (d_h)
             Forgetting or connection discounting rate
         Glow_Decay/Dampening (d_g)
             Rate of glow decay
-        Hopping Probability (p)
-            For each edge it would be the sum the weight devided by the sum of all the weights of the edges connected to the same node
-
     """
     def __init__(self, g_edge=False, g_clip=False, emotion=False, softmax=False, reflection=0, deliberation=0, decay_h=0, decay_g=0, actions = []):
         self.g_edge = g_edge
@@ -118,8 +112,6 @@ class PSAgent:
         percept is the index of the percept in the percept space
         if deliberation is < 0 then a clip walk will be taken
         if deliberation is >= 0 then an action from the action space will be taken based on the percept
-
-        there is also reflection-------!!!!!!!!!
 
         """
         action_index = 0
@@ -213,7 +205,6 @@ class PSAgent:
         self.clip_action_matrix[0, action_row_index:, :] = 1
         self.clip_action_matrix[0, :action_row_index, action_column_index:] = 1
 
-
     def update_weights(self, percept_indices: list, action_index: int, reward: int):
         """
         Update the weights of the agent's memory
@@ -230,7 +221,10 @@ class PSAgent:
             NOTE: planning on getting glowing clips rather than passing them in the update weights function
         """
         if not self.g_edge and not self.g_clip:
-            pass
+            if softmax:
+                pass #use softmax
+            else:
+                pass #use traditional
         elif self.g_edge:
             #edge glow
                 #update the glowing edges to some extent based on the reward? is that what they did? or is that just what i want to do because 
