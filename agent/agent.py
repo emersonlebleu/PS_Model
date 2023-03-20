@@ -40,6 +40,8 @@ class PSAgent:
         Glow_Decay/Dampening (d_g)
             Rate of glow decay
     """
+    #TODO: use matrix multiplication to speed up the process anywhere possible
+    
     def __init__(self, g_edge=False, g_clip=False, emotion=False, probability_type="traditional", reflection=0, deliberation=0, decay_h=0, decay_g=0, actions = []):
         self.g_edge = g_edge
         self.g_clip = g_clip
@@ -127,6 +129,9 @@ class PSAgent:
             action_index = np.random.choice(list(self.action_space.values()), p=self.get_action_probabilities(percept_index))
             last_path_taken.append(percept_index)
             last_path_taken.append(action_index)
+
+            return action_index, last_path_taken
+
         elif remaining_jumps > 0 and remaining_reflections == 0:
             #Take only one clip walk
             while remaining_jumps >= 0:
@@ -136,29 +141,30 @@ class PSAgent:
             #once we are done with the clip walk we will take an action
             action_index = np.random.choice(list(self.action_space.values()), p=self.get_action_probabilities(clip_index))
             last_path_taken.append(action_index)
-        
+
+            return action_index, last_path_taken
+
         #If there is reflection
-        while reminaing_reflections >= 0:
+        else:
+            while remaining_reflections >= 0:
+                #take a clip walk
+                while remaining_jumps >= 0:
+                    clip_index = np.random.choice(list(self.clip_space.values()), p=self.get_clip_probabilities(clip_index))
+                    remaining_jumps -= 1
+                    last_path_taken.append(clip_index)
+                action_index = np.random.choice(list(self.action_space.values()), p=self.get_action_probabilities(clip_index))
+                last_path_taken.append(action_index)
 
-            #take a clip walk
-            while remaining_jumps >= 0:
-                clip_index = np.random.choice(list(self.clip_space.values()), p=self.get_clip_probabilities(clip_index))
-                remaining_jumps -= 1
-                last_path_taken.append(clip_index)
-            action_index = np.random.choice(list(self.action_space.values()), p=self.get_action_probabilities(clip_index))
-            last_path_taken.append(action_index)
-
-            #if the action has a positive emotion then we will take it else keep going (emotion is at index 1)
-            if self.clip_action_matrix[1][clip_index][action_index] > 0:
-                break
-            elif remaining_reflections == 0:
-                break
-            else:
-                remaining_reflections -= 1
-                remaining_jumps = self.deliberation
-                last_path_taken = []
-
-        return action_index, last_path_taken
+                #if the action has a positive emotion then we will take it else keep going (emotion is at index 1)
+                if self.clip_action_matrix[1][clip_index][action_index] > 0:
+                    break
+                elif remaining_reflections == 0:
+                    break
+                else:
+                    remaining_reflections -= 1
+                    remaining_jumps = self.deliberation
+                    last_path_taken = []
+            return action_index, last_path_taken
 
     def add_clip_to_memory(self, clip = ()):
         #Add the clip to the clip space
@@ -264,7 +270,7 @@ class PSAgent:
                 pass
         return probabilities
 
-agent = PSAgent(actions=["+", "-"])
+agent = PSAgent(actions=["+", "-"], deliberation=0, reflection=1)
 agent.add_clip_to_memory(clip=(1, 2, 3))
 print("Memory Space:")
 print(agent.clip_space)
@@ -293,3 +299,7 @@ print("Percept H Matrix:")
 print(agent.clip_clip_matrix)
 print("Action H Matrix:")
 print(agent.clip_action_matrix)
+
+action_index, path_taken = agent.take_action(1)
+print("Action Taken: ", action_index)
+print("Path Taken: ", path_taken)
