@@ -99,8 +99,11 @@ class PSAgent:
             #get the index of the clip in the clip space name percept use to pick the next action later
             percept_index = self.clip_space[tuple(observations)]
 
-        #Reward the previous clip walk
-        #self.update_weights(percepts, actions, reward)
+        #Reward the previous clip walk if there is one
+        if len(self.last_path_taken) > 0:
+            #pop will remove the item at the index and return it now we can use last_action_index and self.update_weights to update the weights
+            last_action_index = self.last_path_taken.pop()
+            self.update_weights(self.last_path_taken, last_action_index, reward)
 
         #Take the next action which returns the index of the action taken & the path taken
         action_index, self.last_path_taken = self.take_action(percept_index)
@@ -210,8 +213,8 @@ class PSAgent:
         self.clip_action_matrix[0, action_row_index:, :] = 1
         self.clip_action_matrix[0, :action_row_index, action_column_index:] = 1
 
-    #
-    def update_weights(self, percept_indices: list, action_index: int, reward: int, glowing_percepts: list = [], glowing_actions: list = []):
+
+    def update_weights(self, percept_indices: list, action_index: int, reward: int):
         """
         Update the weights of the agent's memory
             Takes a list of the visited percepts and actions during the last cycle and updates the weights based on the reward given
@@ -224,13 +227,19 @@ class PSAgent:
 
             Can use softmax as well to account for negative rewards as needed:
 
+            NOTE: planning on getting glowing clips rather than passing them in the update weights function
         """
-        if self.g_edge or self.g_clip:
+        if not self.g_edge and not self.g_clip:
+            pass
+        elif self.g_edge:
             #edge glow
                 #update the glowing edges to some extent based on the reward? is that what they did? or is that just what i want to do because 
                 #that makes sense to me?
             #clip glow
                 #update the glowing clips weights to some extent based on the reward
+            pass
+        else:
+            #clip glow
             pass
 
 agent = PSAgent(actions=["+", "-"])
