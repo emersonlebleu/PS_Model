@@ -1,5 +1,4 @@
 import os
-from random import choices
 import numpy as np
 
 # A class called agent that will be used to control the stimuli and store experiences in the memory space
@@ -125,17 +124,17 @@ class PSAgent:
         #Couple out immediately if there is no more deliberation and no more reflection
         if remaining_jumps == 0 and remaining_reflections == 0:
             #choices is going to choose from some weighted probablities which is defined as prob = weight / sum of all weights
-            action_index = random.choices(list(self.action_space.values()), weights=self.clip_action_matrix[0][percept_index], k=1)[0]
+            action_index = np.random.choice(list(self.action_space.values()), p=self.get_action_probabilities(percept_index))
             last_path_taken.append(percept_index)
             last_path_taken.append(action_index)
         elif remaining_jumps > 0 and remaining_reflections == 0:
             #Take only one clip walk
             while remaining_jumps >= 0:
-                clip_index = random.choices(list(self.clip_space.values()), weights=self.clip_clip_matrix[0][clip_index], k=1)[0]
+                clip_index = np.random.choice(list(self.clip_space.values()), p=self.get_clip_probabilities(clip_index))
                 remaining_jumps -= 1
                 last_path_taken.append(clip_index)
             #once we are done with the clip walk we will take an action
-            action_index = random.choices(list(self.action_space.values()), weights=self.clip_action_matrix[0][clip_index], k=1)[0]
+            action_index = np.random.choice(list(self.action_space.values()), p=self.get_action_probabilities(clip_index))
             last_path_taken.append(action_index)
         
         #If there is reflection
@@ -143,11 +142,10 @@ class PSAgent:
 
             #take a clip walk
             while remaining_jumps >= 0:
-                #choices is going to choose from some weighted probablities which is defined as prob = weight / sum of all weights
-                clip_index = random.choices(list(self.clip_space.values()), weights=self.clip_clip_matrix[0][clip_index], k=1)[0]
+                clip_index = np.random.choice(list(self.clip_space.values()), p=self.get_clip_probabilities(clip_index))
                 remaining_jumps -= 1
                 last_path_taken.append(clip_index)
-            action_index = random.choices(list(self.action_space.values()), weights=self.clip_action_matrix[0][clip_index], k=1)[0]
+            action_index = np.random.choice(list(self.action_space.values()), p=self.get_action_probabilities(clip_index))
             last_path_taken.append(action_index)
 
             #if the action has a positive emotion then we will take it else keep going (emotion is at index 1)
