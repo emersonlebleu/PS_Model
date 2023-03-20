@@ -41,7 +41,7 @@ class PSAgent:
         Glow_Decay/Dampening (d_g)
             Rate of glow decay
     """
-    def __init__(self, g_edge=False, g_clip=False, emotion=False, softmax=False, reflection=0, deliberation=0, decay_h=0, decay_g=0, actions = []):
+    def __init__(self, g_edge=False, g_clip=False, emotion=False, probability_type="traditional", reflection=0, deliberation=0, decay_h=0, decay_g=0, actions = []):
         self.g_edge = g_edge
         self.g_clip = g_clip
         self.emotion = emotion
@@ -49,6 +49,7 @@ class PSAgent:
         self.decay_h = decay_h
         self.decay_g = decay_g
         self.deliberation = deliberation
+        self.probability_type = probability_type
 
         #The memory space of action and percepts is a dictionary of clips because we will be looking up clips frequently (O(1))
         self.clip_space = {}
@@ -221,10 +222,7 @@ class PSAgent:
             NOTE: planning on getting glowing clips rather than passing them in the update weights function
         """
         if not self.g_edge and not self.g_clip:
-            if softmax:
-                pass #use softmax
-            else:
-                pass #use traditional
+            pass
         elif self.g_edge:
             #edge glow
                 #update the glowing edges to some extent based on the reward? is that what they did? or is that just what i want to do because 
@@ -235,6 +233,34 @@ class PSAgent:
         else:
             #clip glow
             pass
+        
+    def get_action_probabilities(self, percept_index: int):
+        """
+        Returns the probabilities of each action given a percept uses the type of probability to determine how to calculate the probabilities
+        """
+        probabilities = []
+        if self.probability_type == "traditional":
+            for action_index in self.clip_action_matrix[0][percept_index]:
+                prob = self.clip_action_matrix[0][percept_index][action_index]/sum(self.clip_action_matrix[0][percept_index])
+                probabilities.append(prob)
+        elif self.probability_type == "softmax":
+            for action_index in self.clip_action_matrix[0][percept_index]:
+                pass
+        return probabilities
+
+    def get_clip_probabilities(self, percept_index: int):
+        """
+        Returns the probabilities of each clip given a percept uses the type of probability to determine how to calculate the probabilities
+        """
+        probabilities = []
+        if self.probability_type == "traditional":
+            for clip_index in self.clip_clip_matrix[0][percept_index]:
+                prob = self.clip_clip_matrix[0][percept_index][clip_index]/sum(self.clip_clip_matrix[0][percept_index])
+                probabilities.append(prob)
+        elif self.probability_type == "softmax":
+            for clip_index in self.clip_clip_matrix[0][percept_index]:
+                pass
+        return probabilities
 
 agent = PSAgent(actions=["+", "-"])
 agent.add_clip_to_memory(clip=(1, 2, 3))
