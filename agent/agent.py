@@ -243,6 +243,8 @@ class PSAgent:
             for action_index in self.clip_action_matrix[0][percept_index]:
                 prob = self.clip_action_matrix[0][percept_index][action_index]/sum(self.clip_action_matrix[0][percept_index])
                 probabilities.append(prob)
+        
+        #TODO: add softmax
         elif self.probability_type == "softmax":
             for action_index in self.clip_action_matrix[0][percept_index]:
                 pass
@@ -257,6 +259,8 @@ class PSAgent:
             for clip_index in self.clip_clip_matrix[0][percept_index]:
                 prob = self.clip_clip_matrix[0][percept_index][clip_index]/sum(self.clip_clip_matrix[0][percept_index])
                 probabilities.append(prob)
+        
+        #TODO: add softmax
         elif self.probability_type == "softmax":
             for clip_index in self.clip_clip_matrix[0][percept_index]:
                 pass
