@@ -54,6 +54,8 @@ class PSAgent:
         self.probability_type = probability_type
         self.k = k
 
+        self.log_file = "log.txt"
+
         #The memory space of action and percepts is a dictionary of clips because we will be looking up clips frequently (O(1))
         self.clip_space = {}
         self.clip_index = 0
@@ -166,6 +168,8 @@ class PSAgent:
                     remaining_reflections -= 1
                     remaining_jumps = self.deliberation
                     last_path_taken = []
+            
+            self.log_memory(list(self.action_space.keys())[action_index], last_path_taken)
             return action_index, last_path_taken
 
     def add_clip_to_memory(self, clip = ()):
@@ -296,6 +300,26 @@ class PSAgent:
                 pass
         return probabilities
 
+    def log_memory(self, action: str, path):
+        """
+        Logs the memory of the agent
+        """
+        log = open(file=self.log_file, mode="w")
+        log.write("Clips:\n")
+        log.write(str(self.clip_space))
+        log.write("\nActions:\n")
+        log.write(str(self.action_space))
+        log.write("\nPercept H Matrix:\n")
+        log.write(str(self.clip_clip_matrix))
+        log.write("\nAction H Matrix:\n")
+        log.write(str(self.clip_action_matrix))
+
+        log.write("\nAction Chosen:\n")
+        log.write(str(action))
+        log.write("\nPath Taken:\n")
+        log.write(str(path))
+        log.close()
+        
 agent = PSAgent(actions=["+", "-"], deliberation=0, reflection=1)
 agent.add_clip_to_memory(clip=(1, 2, 3))
 print("Memory Space:")
