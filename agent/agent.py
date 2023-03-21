@@ -39,10 +39,11 @@ class PSAgent:
             Forgetting or connection discounting rate
         Glow_Decay/Dampening (d_g)
             Rate of glow decay
+        Associative Groth (k)
     """
     #TODO: use matrix multiplication to speed up the process anywhere possible
-    
-    def __init__(self, g_edge=False, g_clip=False, emotion=False, probability_type="traditional", reflection=0, deliberation=0, decay_h=0, decay_g=0, actions = []):
+
+    def __init__(self, g_edge=False, g_clip=False, emotion=False, probability_type="traditional", reflection=0, deliberation=0, decay_h=0, decay_g=0, k=.5, actions = []):
         self.g_edge = g_edge
         self.g_clip = g_clip
         self.emotion = emotion
@@ -51,6 +52,7 @@ class PSAgent:
         self.decay_g = decay_g
         self.deliberation = deliberation
         self.probability_type = probability_type
+        self.k = k
 
         #The memory space of action and percepts is a dictionary of clips because we will be looking up clips frequently (O(1))
         self.clip_space = {}
@@ -226,7 +228,22 @@ class PSAgent:
             NOTE: planning on getting glowing clips rather than passing them in the update weights function
         """
         if not self.g_edge and not self.g_clip:
-            pass
+            #update the direct connection: clip_action_matrix[0][percept_indicies[0]][percept_indicies[-1]] 
+            direct_transition = clip_action_matrix[0][percept_indicies[0]][percept_indicies[-1]]
+            #using reward rather than unity (Briegel et al. 2012 uses unity) expecting reward will be 1 or 0 can look at other rewards as well
+            direct_transition += reward
+            #update the indirect clip walk with K factor
+            if len(percept_indices) > 2:
+                current_clip = 0
+                for next_clip in percept_indices[1:-1]:
+                    indirect_transition = clip_clip_matrix[0][percept_indicies[current_clip]][next_clip]
+                    indirect_transition += self.k
+                    current_clip = next_clip
+                #update the indirect action walk with K factor
+                indirect_transition = clip_action_matrix[0][percept_indicies[-2]][percept_indicies[-1]]
+                indirect_transition += self.k
+            #decay all the weights
+            
         elif self.g_edge:
             #edge glow
                 #update the glowing edges to some extent based on the reward? is that what they did? or is that just what i want to do because 
