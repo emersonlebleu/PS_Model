@@ -236,19 +236,19 @@ class PSAgent:
             self.clip_action_matrix[0] = self.clip_action_matrix[0] - action_update_matrix#decay the clip_action_matrix
 
             #update the direct connection
-            direct_transition = clip_action_matrix[0][percept_indicies[0]][percept_indicies[-1]]
+            direct_transition = clip_action_matrix[0][percept_indicies[0]][action_index]
             #using reward rather than unity (Briegel et al. 2012 uses unity) expecting reward will be 1 or 0 can look at other rewards as well
             direct_transition += reward
 
             #update the indirect clip walk with K factor
-            if len(percept_indices) > 2:
+            if len(percept_indices) > 1:
                 current_clip = 0
-                for next_clip in percept_indices[1:-1]:
+                for next_clip in percept_indices[1:]:
                     indirect_transition = clip_clip_matrix[0][percept_indicies[current_clip]][next_clip]
                     indirect_transition += self.k
                     current_clip = next_clip
                 #update the indirect action walk with K factor
-                indirect_transition = clip_action_matrix[0][percept_indicies[-2]][percept_indicies[-1]]
+                indirect_transition = clip_action_matrix[0][percept_indicies[-1]][action_index]
                 indirect_transition += self.k
 
         elif self.g_edge:
