@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import random
 
 # A class called agent that will be used to control the stimuli and store experiences in the memory space
 class PSAgent:
@@ -134,6 +135,7 @@ class PSAgent:
             last_path_taken.append(percept_index)
             last_path_taken.append(action_index)
 
+            self.log_memory(list(self.action_space.keys())[action_index], last_path_taken)
             return action_index, last_path_taken
 
         elif remaining_jumps > 0 and remaining_reflections == 0:
@@ -146,6 +148,7 @@ class PSAgent:
             action_index = np.random.choice(list(self.action_space.values()), p=self.get_action_probabilities(clip_index))
             last_path_taken.append(action_index)
 
+            self.log_memory(list(self.action_space.keys())[action_index], last_path_taken)
             return action_index, last_path_taken
 
         #If there is reflection
@@ -206,15 +209,9 @@ class PSAgent:
         self.action_space[action] = self.action_index
         self.action_index += 1
 
-        #Add new fields to the action_h_matrix
-        action_row_index = self.clip_action_matrix.shape[1]
-        action_column_index = self.clip_action_matrix.shape[2]
-
         self.clip_action_matrix = np.append(self.clip_action_matrix, np.full((3, self.clip_action_matrix.shape[1], 1), 0), axis=2)
-        self.clip_action_matrix = np.append(self.clip_action_matrix, np.full((3, 1, self.clip_action_matrix.shape[2]), 0), axis=1)
 
-        self.clip_action_matrix[0, action_row_index:, :] = 1
-        self.clip_action_matrix[0, :action_row_index, action_column_index:] = 1
+        self.clip_action_matrix[0, :, self.action_index] = 1
 
     def update_weights(self, percept_indices: list, action_index: int, reward: int):
         """
@@ -240,20 +237,18 @@ class PSAgent:
             self.clip_action_matrix[0] = self.clip_action_matrix[0] - action_update_matrix#decay the clip_action_matrix
 
             #update the direct connection
-            direct_transition = clip_action_matrix[0][percept_indicies[0]][action_index]
+            self.clip_action_matrix[0][percept_indices[0]][action_index] += reward
             #using reward rather than unity (Briegel et al. 2012 uses unity) expecting reward will be 1 or 0 can look at other rewards as well
-            direct_transition += reward
+            
 
             #update the indirect clip walk with K factor
             if len(percept_indices) > 1:
                 current_clip = 0
                 for next_clip in percept_indices[1:]:
-                    indirect_transition = clip_clip_matrix[0][percept_indicies[current_clip]][next_clip]
-                    indirect_transition += self.k
+                    self.clip_clip_matrix[0][percept_indices[current_clip]][next_clip] += self.k
                     current_clip = next_clip
                 #update the indirect action walk with K factor
-                indirect_transition = clip_action_matrix[0][percept_indicies[-1]][action_index]
-                indirect_transition += self.k
+                self.clip_action_matrix[0][percept_indices[-1]][action_index] += self.k
 
         elif self.g_edge:
             #if the edget is in the percept indices then update the edge glow
@@ -272,33 +267,28 @@ class PSAgent:
         """
         Returns the probabilities of each action given a percept uses the type of probability to determine how to calculate the probabilities
         """
-        probabilities = []
+
         if self.probability_type == "traditional":
-            for action_index in self.clip_action_matrix[0][percept_index]:
-                prob = self.clip_action_matrix[0][percept_index][action_index]/sum(self.clip_action_matrix[0][percept_index])
-                probabilities.append(prob)
+            action_probabilities = self.clip_action_matrix[0, percept_index, :]/sum(self.clip_action_matrix[0, percept_index, :])
         
         #TODO: add softmax
         elif self.probability_type == "softmax":
-            for action_index in self.clip_action_matrix[0][percept_index]:
                 pass
-        return probabilities
+
+        return action_probabilities
 
     def get_clip_probabilities(self, percept_index: int):
         """
         Returns the probabilities of each clip given a percept uses the type of probability to determine how to calculate the probabilities
         """
-        probabilities = []
         if self.probability_type == "traditional":
-            for clip_index in self.clip_clip_matrix[0][percept_index]:
-                prob = self.clip_clip_matrix[0][percept_index][clip_index]/sum(self.clip_clip_matrix[0][percept_index])
-                probabilities.append(prob)
+            clip_probabilities = self.clip_clip_matrix[0, percept_index, :]/sum(self.clip_clip_matrix[0, percept_index, :])
         
         #TODO: add softmax
         elif self.probability_type == "softmax":
-            for clip_index in self.clip_clip_matrix[0][percept_index]:
                 pass
-        return probabilities
+
+        return clip_probabilities
 
     def log_memory(self, action: str, path):
         """
@@ -322,34 +312,16 @@ class PSAgent:
         
 agent = PSAgent(actions=["+", "-"], deliberation=0, reflection=1)
 agent.add_clip_to_memory(clip=(1, 2, 3))
-print("Memory Space:")
-print(agent.clip_space)
-print(agent.action_space)
-print("Percept H Matrix:")
-print(agent.clip_clip_matrix)
-print("Action H Matrix:")
-print(agent.clip_action_matrix)
-
-print("Adding One more:")
-agent.add_action_to_memory("tap")
-print("Memory Space:")
-print(agent.clip_space)
-print(agent.action_space)
-print("Percept H Matrix:")
-print(agent.clip_clip_matrix)
-print("Action H Matrix:")
-print(agent.clip_action_matrix)
-
-print("Adding 3 more:")
 agent.add_clip_to_memory(clip=(7, 8, 9))
-print("Memory Space:")
-print(agent.clip_space)
-print(agent.action_space)
-print("Percept H Matrix:")
-print(agent.clip_clip_matrix)
-print("Action H Matrix:")
-print(agent.clip_action_matrix)
+agent.add_clip_to_memory(clip=(3, 8, 9))
 
-action_index, path_taken = agent.take_action(1)
-print("Action Taken: ", action_index)
-print("Path Taken: ", path_taken)
+reward = 0
+for i in range(50):
+    random_percept = random.choice([[1, 2, 3], [7, 8, 9]])
+    action = agent.observe_environment(observations=random_percept, reward=reward)
+    if random_percept == [1, 2, 3] and action == "+":
+        reward = 1
+    elif random_percept == [7, 8, 9] and action == "-":
+        reward = 1
+    else:
+        reward = 0

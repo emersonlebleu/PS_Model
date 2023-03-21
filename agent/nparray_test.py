@@ -1,7 +1,9 @@
 import numpy as np
 
-three_D = np.zeros((2, 2))
-new = three_D + 3
-new1s = np.ones((2, 2))
-new = new + new1s
-print(new)
+three_D = np.zeros((2, 2, 2))
+three_D[0, 0, 0] = 1
+three_D[0, 0, 1] = 2
+
+probabilities = three_D[0, 0, :]/np.sum(three_D[0, 0, :])
+
+print(probabilities)
