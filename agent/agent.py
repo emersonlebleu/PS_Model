@@ -228,10 +228,18 @@ class PSAgent:
             NOTE: planning on getting glowing clips rather than passing them in the update weights function
         """
         if not self.g_edge and not self.g_clip:
-            #update the direct connection: clip_action_matrix[0][percept_indicies[0]][percept_indicies[-1]] 
+            #NOTE: Using mautner et. al 2015 weight updates, it is more readable. Adapting with Briegel et al. 2012's use of k for the indirect walk
+            clip_update_matrix = self.decay_h * (self.clip_clip_matrix[0] - 1)
+            action_update_matrix = self.decay_h * (self.clip_action_matrix[0] - 1)
+
+            self.clip_clip_matrix[0] = self.clip_clip_matrix[0] - clip_update_matrix#decay the clip_clip_matrix
+            self.clip_action_matrix[0] = self.clip_action_matrix[0] - action_update_matrix#decay the clip_action_matrix
+
+            #update the direct connection
             direct_transition = clip_action_matrix[0][percept_indicies[0]][percept_indicies[-1]]
             #using reward rather than unity (Briegel et al. 2012 uses unity) expecting reward will be 1 or 0 can look at other rewards as well
             direct_transition += reward
+
             #update the indirect clip walk with K factor
             if len(percept_indices) > 2:
                 current_clip = 0
@@ -242,9 +250,10 @@ class PSAgent:
                 #update the indirect action walk with K factor
                 indirect_transition = clip_action_matrix[0][percept_indicies[-2]][percept_indicies[-1]]
                 indirect_transition += self.k
-            #decay all the weights
-            
+
         elif self.g_edge:
+            #if the edget is in the percept indices then update the edge glow
+            #then we can use the multiplication strategy to update the weights with the glow and decay
             #edge glow
                 #update the glowing edges to some extent based on the reward? is that what they did? or is that just what i want to do because 
                 #that makes sense to me?
