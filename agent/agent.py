@@ -139,7 +139,7 @@ class PSAgent:
 
             self.log_memory(list(self.action_space.keys())[action_index], last_path_taken)
             return action_index, last_path_taken
-            
+
         elif remaining_jumps > 0 and remaining_reflections == 0:
             #see if there is a positive emotion on the action chosen by percept
             action_index, emotion_tag, path_pair = self.get_action(percept_index) #pick an action and observe emotion tag
@@ -350,7 +350,7 @@ class PSAgent:
         """
         Logs the memory of the agent
         """
-        log = open(file=self.log_file, mode="a")
+        log = open(file=self.log_file, mode="w")
         log.write("\nClips:\n")
         log.write(str(self.clip_space))
         log.write("\nActions:\n")

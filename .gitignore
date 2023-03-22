@@ -1,4 +1,4 @@
-.venv
+../.venv/
 .DS_Store
 agent/__init__.py
 
