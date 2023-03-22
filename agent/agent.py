@@ -350,7 +350,7 @@ class PSAgent:
         """
         Logs the memory of the agent
         """
-        log = open(file=self.log_file, mode="w")
+        log = open(file=self.log_file, mode="a")
         log.write("\nClips:\n")
         log.write(str(self.clip_space))
         log.write("\nActions:\n")
