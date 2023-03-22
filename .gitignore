@@ -1,0 +1,8 @@
+.venv
+agent/log.txt
+.DS_Store
+agent/__init__.py
+
+PS_Model/__pycache__
+PS_Model/agent/__pycache__
+PS_Model/enviroment/__pycache__
