@@ -107,10 +107,11 @@ class PSAgent:
             percept_index = self.clip_space[tuple(observations)]
 
         self.observation = tuple(observations)
+        
         #Reward the previous clip walk if there is one
         if len(self.last_path_taken) > 0:
             #pop will remove the item at the index and return it now we can use last_action_index and self.update_weights to update the weights
-            last_action_index = self.last_path_taken.pop()
+            last_action_index = self.last_path_taken[-1]
             self.update_weights(self.last_path_taken, last_action_index, float(reward))
 
         #Take the next action which returns the index of the action taken & the path taken
@@ -168,6 +169,11 @@ class PSAgent:
                 remaining_jumps -= 1
 
                 if remaining_jumps == 0:
+                    action_index, emotion_tag, path_pair = self.get_action(clip_index) #pick an action
+
+                    for index in path_pair:
+                        last_path_taken.append(index)
+
                     self.log_memory(list(self.action_space.keys())[action_index], last_path_taken)
                     return action_index, last_path_taken
         #If there is reflection

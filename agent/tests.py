@@ -25,7 +25,7 @@ aggregate_interval = 5
 
 reward = 0
 
-for i in range(51):
+for i in range(101):
 
     #calculate % correct every 10 trials
     if i !=0 and i % aggregate_interval == 0:
