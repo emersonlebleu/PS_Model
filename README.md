@@ -14,6 +14,6 @@ An implementation of the projective simulation model. The implementation is deri
 starting at the current percept until an action is chosen.
     - A walk is taken after novel percpets as well.
     - Walks are probablistic jumps from percept to percept and/or percept to action in memory.
-3. Action is chosent. Based on the environment the agent will recieve a reward, and the next state of the environment.
+3. Action is chosen. Based on the environment the agent will recieve a reward, and the next state of the environment.
 
 **CURRENTLY:** Implementation is being built out fully. In future updates will include a refactor of the code base in order to better partition the agent into appropriate components for use.
