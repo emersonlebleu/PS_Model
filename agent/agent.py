@@ -137,6 +137,9 @@ class PSAgent:
             for index in path_pair:
                 last_path_taken.append(index) #add the percept and action to the path taken
 
+            self.log_memory(list(self.action_space.keys())[action_index], last_path_taken)
+            return action_index, last_path_taken
+            
         elif remaining_jumps > 0 and remaining_reflections == 0:
             #see if there is a positive emotion on the action chosen by percept
             action_index, emotion_tag, path_pair = self.get_action(percept_index) #pick an action and observe emotion tag
@@ -335,7 +338,7 @@ class PSAgent:
         action_index = np.random.choice(list(self.action_space.values()), p=self.get_action_probabilities(percept_index))
         emotion_tag = self.clip_action_matrix[1, percept_index, action_index]
         path_couple = [percept_index, action_index]
-        
+
         if emotion_tag == 1:
             emotion_tag = True
         else:
