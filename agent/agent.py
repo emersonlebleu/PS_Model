@@ -93,6 +93,11 @@ class PSAgent:
             print("No observations were given to the agent")
             return
         
+        if type(observations) is not tuple or type(observation) is not list:
+            observations = (observations,)
+        elif type(observations) is list:
+            observations = tuple(observations)
+
         if tuple(observations) not in self.clip_space:
             self.add_clip_to_memory(clip = tuple(observations))
             #in the future we may want to add a glow to the newly added clip before we move on to rewarding previous perception jumps
