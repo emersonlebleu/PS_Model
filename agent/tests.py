@@ -4,7 +4,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
-agent = PSAgent(actions=["+", "-"], deliberation=2, reflection=0)
+agent = PSAgent(actions=["+", "-"], deliberation=3, reflection=0, k=.2)
 agent.add_clip_to_memory(clip=["happy"])
 agent.add_clip_to_memory(clip=["sad"])
 agent.add_clip_to_memory(clip=["good"])
@@ -25,7 +25,7 @@ aggregate_interval = 5
 
 reward = 0
 
-for i in range(101):
+for i in range(201):
 
     #calculate % correct every 10 trials
     if i !=0 and i % aggregate_interval == 0:

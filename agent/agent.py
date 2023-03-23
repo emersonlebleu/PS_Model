@@ -95,24 +95,25 @@ class PSAgent:
         
         if type(observations) is not tuple or type(observation) is not list:
             observations = (observations,)
+            self.observations = observations
         elif type(observations) is list:
             observations = tuple(observations)
+            self.observations = observations
 
         if tuple(observations) not in self.clip_space:
-            self.add_clip_to_memory(clip = tuple(observations))
+            self.add_clip_to_memory(clip = self.observations)
             #in the future we may want to add a glow to the newly added clip before we move on to rewarding previous perception jumps
-            percept_index = self.clip_space[tuple(observations)]
+            percept_index = self.clip_space[self.observations]
         else:
             #get the index of the clip in the clip space name percept use to pick the next action later
-            percept_index = self.clip_space[tuple(observations)]
-
-        self.observation = tuple(observations)
+            percept_index = self.clip_space[self.observations]
         
         #Reward the previous clip walk if there is one
         if len(self.last_path_taken) > 0:
             #pop will remove the item at the index and return it now we can use last_action_index and self.update_weights to update the weights
-            last_action_index = self.last_path_taken[-1]
-            self.update_weights(self.last_path_taken, last_action_index, float(reward))
+            last_clip_walk = self.last_path_taken
+            last_action_index = last_clip_walk.pop()
+            self.update_weights(last_clip_walk, last_action_index, float(reward))
 
         #Take the next action which returns the index of the action taken & the path taken
         action_index, self.last_path_taken = self.take_action(percept_index)
@@ -179,31 +180,51 @@ class PSAgent:
         #If there is reflection
         else:
             while remaining_reflections > 0:
-                #take a clip walk
-                while remaining_jumps > 0:
-                    clip_index = np.random.choice(list(self.clip_space.values()), p=self.get_clip_probabilities(clip_index))
-                    last_path_taken.append(clip_index)
-
-                    remaining_jumps -= 1
-                
-                remaining_reflections -= 1
-
-                #get an action for our end clip
-                action_index, emotion_tag, path_pair = self.get_action(clip_index) #pick an action and observe emotion tag
+                #see if there is a positive emotion on the action chosen by percept
+                action_index, emotion_tag, path_pair = self.get_action(percept_index) #pick an action and observe emotion tag
                 
                 for index in path_pair:
                         last_path_taken.append(index)
                 
+                remaining_reflections -= 1  
+
                 if emotion_tag:
                     #if there is a positive emotion then we will take the action
                     self.log_memory(list(self.action_space.keys())[action_index], last_path_taken)
-                    return action_index, last_path_taken
-                if remaining_reflections == 0:
+                    return action_index, last_path_taken                   
+                elif remaining_jumps != 0: #there are jumps left
+                    last_path_taken.pop() #remove the action from the path taken
+                    clip_index = last_path_taken[-1]
+
+                    #take a clip walk if we have jumps
+                    while remaining_jumps > 0:
+                        clip_index = np.random.choice(list(self.clip_space.values()), p=self.get_clip_probabilities(clip_index))
+                        last_path_taken.append(clip_index)
+
+                        remaining_jumps -= 1
+                    
+                    #get an action for our end clip
+                    action_index, emotion_tag, path_pair = self.get_action(clip_index) #pick an action and observe emotion tag
+                    
+                    last_path_taken.append(action_index)
+
+                    if emotion_tag:
+                        #if there is a positive emotion then we will take the action
+                        self.log_memory(list(self.action_space.keys())[action_index], last_path_taken)
+                        return action_index, last_path_taken
+                    if remaining_reflections == 0:
+                        self.log_memory(list(self.action_space.keys())[action_index], last_path_taken)
+                        return action_index, last_path_taken
+                    else:
+                        last_path_taken = []#reset and try again
+                        remaining_jumps = self.deliberation
+                elif remaining_reflections > 0: #there are no jumps left but there are reflections left
+                    last_path_taken = []
+                    remaining_jumps = self.deliberation
+                else: #if there are no reflections left and no jumps left then we will take the action chosen by the percept
                     self.log_memory(list(self.action_space.keys())[action_index], last_path_taken)
                     return action_index, last_path_taken
-                else:
-                    last_path_taken = []#reset and try again
-                    remaining_jumps = self.deliberation
+                    
 
     def add_clip_to_memory(self, clip = ()):
         if type(clip) != tuple:
@@ -276,27 +297,31 @@ class PSAgent:
 
             #update the direct connection
             self.clip_action_matrix[0, percept_indices[0], action_index] += reward
+            
             #update the emotion matrix
             if reward > 0:
+                self.clip_action_matrix[1, percept_indices[0], :] *= 0
                 self.clip_action_matrix[1, percept_indices[0], action_index] = 1
+            else: 
+                self.clip_action_matrix[1, percept_indices[0], :] *= 0
+            
             #using reward rather than unity (Briegel et al. 2012 uses unity) expecting reward will be 1 or 0 can look at other rewards as well
-
             #update the indirect clip walk with K factor
             if len(percept_indices) > 1:
                 prev_clip_index = 0
                 for i in range(1, len(percept_indices)):
                     self.clip_clip_matrix[0, percept_indices[prev_clip_index], percept_indices[i]] += self.k * reward
                     prev_clip_index = i
-                    #update the emotion matrix
-                    if reward > 0:
-                        self.clip_clip_matrix[1, percept_indices[prev_clip_index], percept_indices[i]] = 1
-                
+
                 #update the indirect action walk with K factor
                 self.clip_action_matrix[0, percept_indices[-1], action_index] += self.k * reward
+
                 #update the emotion matrix
                 if reward > 0:
-                        self.clip_clip_matrix[1, percept_indices[-1], action_index] = 1
-
+                    self.clip_action_matrix[1, percept_indices[0], :] *= 0
+                    self.clip_action_matrix[1, percept_indices[0], action_index] = 1
+                else: 
+                    self.clip_action_matrix[1, percept_indices[0], :] *= 0
 
         elif self.g_edge:
             #if the edget is in the percept indices then update the edge glow
@@ -372,7 +397,7 @@ class PSAgent:
         log.write(str(self.clip_action_matrix))
 
         log.write("\nObservation:\n")
-        log.write(str(self.observation))
+        log.write(str(self.observations))
         log.write("\nAction Chosen:\n")
         log.write(str(action))
         log.write("\nPath Taken:\n")
