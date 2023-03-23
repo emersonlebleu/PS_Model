@@ -172,8 +172,7 @@ class PSAgent:
                 if remaining_jumps == 0:
                     action_index, emotion_tag, path_pair = self.get_action(clip_index) #pick an action
 
-                    for index in path_pair:
-                        last_path_taken.append(index)
+                    last_path_taken.append(action_index)
 
                     self.log_memory(list(self.action_space.keys())[action_index], last_path_taken)
                     return action_index, last_path_taken

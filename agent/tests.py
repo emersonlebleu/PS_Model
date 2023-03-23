@@ -4,7 +4,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
-agent = PSAgent(actions=["+", "-"], deliberation=3, reflection=0, k=.2)
+agent = PSAgent(actions=["+", "-"], deliberation=0, reflection=0, k=.2)
 agent.add_clip_to_memory(clip=["happy"])
 agent.add_clip_to_memory(clip=["sad"])
 agent.add_clip_to_memory(clip=["good"])
