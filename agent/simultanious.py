@@ -4,7 +4,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
-agent = PSAgent(actions=["+", "-"], deliberation=0, reflection=0, k=.2)
+agent = PSAgent(actions=["+", "-"], deliberation=0, reflection=0, k=.35)
 agent.add_clip_to_memory(clip=["happy"])
 agent.add_clip_to_memory(clip=["sad"])
 agent.add_clip_to_memory(clip=["good"])
@@ -31,7 +31,7 @@ for i in range(201):
     if i !=0 and i % aggregate_interval == 0:
         percent_correct.append((total_correct/aggregate_interval)*100)
         intervals.append(i)
-        rolling_average.append(np.mean(percent_correct))
+        rolling_average.append(np.mean(percent_correct[-aggregate_interval:]))
         total_correct = 0
 
     #run the trial
