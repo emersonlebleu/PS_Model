@@ -44,7 +44,7 @@ class PSAgent:
     """
     #TODO: use matrix multiplication to speed up the process anywhere possible
 
-    def __init__(self, g_edge=False, g_clip=False, emotion=False, probability_type="traditional", reflection=0, deliberation=0, decay_h=0, decay_g=0, k=.25, actions = []):
+    def __init__(self, g_edge=False, g_clip=False, emotion=False, probability_type="traditional", reflection=0, deliberation=0, decay_h=.15, decay_g=0, k=.25, actions = []):
         self.g_edge = g_edge
         self.g_clip = g_clip
         self.emotion = emotion
@@ -288,11 +288,11 @@ class PSAgent:
 
         if not self.g_edge and not self.g_clip:
             #NOTE: Using mautner et. al 2015 weight updates, it is more readable. Adapting with Briegel et al. 2012's use of k for the indirect walk
-            clip_update_matrix = self.decay_h * (self.clip_clip_matrix[0] - 1)
-            action_update_matrix = self.decay_h * (self.clip_action_matrix[0] - 1)
+            clip_decay_matrix = self.decay_h * (self.clip_clip_matrix[0] - 1)
+            action_decay_matrix = self.decay_h * (self.clip_action_matrix[0] - 1)
 
-            self.clip_clip_matrix[0] = self.clip_clip_matrix[0] - clip_update_matrix#decay the clip_clip_matrix
-            self.clip_action_matrix[0] = self.clip_action_matrix[0] - action_update_matrix#decay the clip_action_matrix
+            self.clip_clip_matrix[0] = self.clip_clip_matrix[0] - clip_decay_matrix#decay the clip_clip_matrix
+            self.clip_action_matrix[0] = self.clip_action_matrix[0] - action_decay_matrix#decay the clip_action_matrix
 
             #update the direct connection
             self.clip_action_matrix[0, percept_indices[0], action_index] += reward
