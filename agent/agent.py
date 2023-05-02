@@ -68,6 +68,7 @@ class PSAgent:
         self.__init_action_space(actions)
 
         self.last_path_taken = [] #A list of the indexes of the clips taken in the last walk
+        self.nan = np.nan
 
     def __init_action_space(self, actions):
         for action in actions: 
@@ -251,13 +252,12 @@ class PSAgent:
 
             self.clip_clip_matrix[0, clip_row_index:, :] = 1.0
             self.clip_clip_matrix[0, :clip_row_index, clip_column_index:] = 1.0
+            
             self.clip_clip_matrix[0, clip_row_index, clip_column_index] = 0.0
 
             #Add new fields to the clip_action_matrix
             action_row_index = self.clip_action_matrix.shape[1]
-
             self.clip_action_matrix = np.append(self.clip_action_matrix, np.full((3, 1, self.clip_action_matrix.shape[2]), 0.0), axis=1)
-
             self.clip_action_matrix[0, action_row_index:, :] = 1.0
 
     def add_action_to_memory(self, action):
@@ -293,6 +293,10 @@ class PSAgent:
 
             self.clip_clip_matrix[0] = self.clip_clip_matrix[0] - clip_decay_matrix#decay the clip_clip_matrix
             self.clip_action_matrix[0] = self.clip_action_matrix[0] - action_decay_matrix#decay the clip_action_matrix
+
+            #set the ID back to 0
+            for i in range(self.clip_clip_matrix[0].shape[0]):
+                self.clip_clip_matrix[0, i, i] = 0.0
 
             #update the direct connection
             self.clip_action_matrix[0, percept_indices[0], action_index] += reward
