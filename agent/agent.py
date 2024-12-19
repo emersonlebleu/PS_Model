@@ -68,7 +68,6 @@ class PSAgent:
         self.__init_action_space(actions)
 
         self.last_path_taken = [] #A list of the indexes of the clips taken in the last walk
-        self.nan = np.nan
 
     def __init_action_space(self, actions):
         for action in actions: 
@@ -294,7 +293,7 @@ class PSAgent:
             self.clip_clip_matrix[0] = self.clip_clip_matrix[0] - clip_decay_matrix#decay the clip_clip_matrix
             self.clip_action_matrix[0] = self.clip_action_matrix[0] - action_decay_matrix#decay the clip_action_matrix
 
-            #set the ID back to 0
+            #set the ID back to 0 could also use an identity matrix..... whatever
             for i in range(self.clip_clip_matrix[0].shape[0]):
                 self.clip_clip_matrix[0, i, i] = 0.0
 
